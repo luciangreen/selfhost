@@ -16,10 +16,11 @@ program(family, [ (parent(ann, bob) :- true), (parent(bob, cal) :- true), (paren
 program(lists, [ (app([], L, L) :- true), (app([H|T], L, [H|R]) :- app(T, L, R)),
                  (mem(X, [X|_]) :- true), (mem(X, [_|T]) :- mem(X, T)) ]).
 
-% The interpreter as data: prove(Program, Goal) for conjunctions, true, and clause lookup.
+% The interpreter as data: prove(Program, Goal) for conjunctions, true, and clause lookup
+% (each clause is copied before use, so its variables are fresh, as Prolog does).
 interpreter([ (prove(_, true) :- true),
               (prove(P, (A, B)) :- prove(P, A), prove(P, B)),
-              (prove(P, G) :- is_goal(G), pick(P, (G :- B)), prove(P, B)),
+              (prove(P, G) :- is_goal(G), pick(P, C), copy_term(C, (G :- B)), prove(P, B)),
               (pick([C|_], C) :- true),
               (pick([_|Cs], C) :- pick(Cs, C)) ]).
 
@@ -27,6 +28,7 @@ interpreter([ (prove(_, true) :- true),
 host(_, true, S, S) :- !.
 host(P, (A, B), S0, S) :- !, host(P, A, S0, S1), host(P, B, S1, S).
 host(_, is_goal(G), S0, S) :- !, G \= true, G \= (_, _), S is S0 + 1.
+host(_, copy_term(A, B), S0, S) :- !, copy_term(A, B), S is S0 + 1.
 host(P, G, S0, S) :- member(C, P), copy_term(C, (H :- B)), H = G, S1 is S0 + 1, host(P, B, S1, S).
 
 % solve_level(+Level, +Program, +Goal, -Steps): Level 1 interprets the program; level 2 interprets

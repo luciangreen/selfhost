@@ -1,24 +1,26 @@
 # selfhost
 
-an interpreter written in the language it interprets, run on itself. The interpreter's own clauses are data it can run, so it can interpret a program directly, or interpret itself interpreting the program, and so on: each level gives the same answers, as a self-hosted Detlog must. Steps are counted at each level, showing what each layer costs. Programs are lists of (Head :- Body) clauses.
+an interpreter written in the language it interprets, run on itself. The interpreter's own clauses are data it can run, so it can interpret a program directly, or interpret itself interpreting the program, and so on (the interpreter passes is_goal and copy_term down to the level below, so it can run its own clauses): each level gives the same answers, as a self-hosted Detlog must. Steps are counted at each level, showing what each layer costs. Programs are lists of (Head :- Body) clauses.
 
 ## Use
 
 ```prolog
 ?- use_module(prolog/selfhost).
 ?- program(family, P), solve(P, grandparent(ann, X), Sols).         % direct
-?- program(family, P), solve2(P, grandparent(ann, X), Sols).        % the interpreter interpreting itself
+?- program(family, P), solve2(P, grandparent(ann, X), Sols).        % the interpreter interpreting the program
+?- program(family, P), solve3(P, grandparent(ann, X), Sols).        % the interpreter interpreting itself interpreting the program
 ?- program(family, P), steps(1, P, grandparent(ann, _), S1), steps(2, P, grandparent(ann, _), S2).   % S2 > S1
 ```
 
 ## Proofs
 
-`proofs/theorems.pl` proves 4 theorems by exhaustion: each one is checked for every case in a finite domain that covers every branch of the definitions. every query over the example programs: each predicate with each pattern of bound and unbound arguments.
+`proofs/theorems.pl` proves 5 theorems by exhaustion: each one is checked for every case in a finite domain that covers every branch of the definitions. every query over the example programs: each predicate with each pattern of bound and unbound arguments.
 
 1. The interpreter interpreting itself gives exactly the same answers, in the same order, as interpreting directly.
 2. Interpreting directly gives the same answers as plain Prolog would (checked against the facts).
 3. Each level costs more steps: the extra layer is never free.
 4. A query with no answers has none at any level.
+5. Level three, the interpreter running itself running the program, gives exactly the answers of level one, in the same order, at a higher cost than level two.
 
 ```sh
 swipl -g main -t halt proofs/theorems.pl

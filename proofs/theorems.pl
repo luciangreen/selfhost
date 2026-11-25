@@ -30,3 +30,8 @@ theorem(each_level_costs_more) :- forall(( program(N, P), query(N, G), solve(P, 
 
 % 4. A query with no answers has none at any level.
 theorem(no_answers_at_any_level) :- forall(( program(N, P), query(N, G), solve(P, G, []) ), solve2(P, G, [])).
+
+% 5. The interpreter can run itself running itself: level three gives exactly the answers of level one, in
+% the same order, and costs more steps than level two.
+theorem(level_three_equals_level_one) :- forall(( program(N, P), query(N, G) ), ( solve(P, G, A), solve3(P, G, C), A =@= C,
+    ( A == [] -> true ; steps(2, P, G, S2), steps(3, P, G, S3), S3 > S2 ) )).
